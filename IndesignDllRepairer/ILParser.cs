@@ -24,6 +24,8 @@ namespace IndesignDllRepairer
 	    protected Queue<String> mOutBuf;
 	    protected StreamWriter mOutFile;
 
+        protected int mLineNum;
+
 	    public ILParser()
 	    {
 	    }
@@ -32,6 +34,7 @@ namespace IndesignDllRepairer
 	    {
 		    Console.WriteLine("Starting parsing");
 		    mState = NullState;
+            Console.WriteLine(Directory.GetCurrentDirectory());
 		    StreamReader file = new StreamReader(path);
 		    mOutFile = new StreamWriter(path + ".out");
             mOutBuf = new Queue<string>();
@@ -39,16 +42,16 @@ namespace IndesignDllRepairer
             string line;
 		    while ((line = file.ReadLine()) != null)
 		    {
+                ++mLineNum;
 			    mOutBuf.Enqueue(line);
 
-			    Console.WriteLine(line);
-			    Console.WriteLine(mOutBuf);
-			    Console.WriteLine(new string('=', 80));
+                //Console.WriteLine(line);
+                //Console.WriteLine(new string('=', 80));
 
-			    //if (!mState(to!string(buf)))
-			    //{
-			    //	break;
-			    //}
+                if (!mState(line))
+                {
+                	break;
+                }
 		    }
 	    }
 
@@ -66,7 +69,7 @@ namespace IndesignDllRepairer
 		    MatchCollection m = mClassRx.Matches(input);
 		    if (m.Count > 0)
 		    {
-			    mClass = m[0].Value;
+			    mClass = m[0].Groups[1].Value;
 			    mState = ClassState;
 		    }
 		
@@ -85,7 +88,7 @@ namespace IndesignDllRepairer
 		    m = mEndBraceRx.Matches(input);
 		    if (m.Count > 0)
 		    {
-			    //DumpBuffer();
+			    DumpBuffer();
 			    mState = NullState;
 		    }
 
@@ -102,7 +105,7 @@ namespace IndesignDllRepairer
 		
 		    if (m.Count > 0)
 		    {
-			    mReturnType = m[0].Value;
+			    mReturnType = m[0].Groups[1].Value;
 			    return true;
 		    }
 
@@ -113,7 +116,7 @@ namespace IndesignDllRepairer
 			    {
 				    //writeln("=".replicate(80));
 				    //writeln(mOutBuf);
-				    //ReplaceReturnType();
+                    ReplaceReturnType();
 				    //writefln("%s::Duplicate returns %s", mClass, mReturnType);
 			    }
 			    return true;
@@ -146,6 +149,8 @@ namespace IndesignDllRepairer
 
 			    mOutFile.WriteLine(line);
 		    }
+
+            mOutFile.Flush();
 	    }
     }
 }
