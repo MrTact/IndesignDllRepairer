@@ -34,7 +34,6 @@ namespace IndesignDllRepairer
 	    {
 		    Console.WriteLine("Starting parsing");
 		    mState = NullState;
-            Console.WriteLine(Directory.GetCurrentDirectory());
 		    StreamReader file = new StreamReader(path);
 		    mOutFile = new StreamWriter(path + ".out");
             mOutBuf = new Queue<string>();
@@ -45,14 +44,13 @@ namespace IndesignDllRepairer
                 ++mLineNum;
 			    mOutBuf.Enqueue(line);
 
-                //Console.WriteLine(line);
-                //Console.WriteLine(new string('=', 80));
-
                 if (!mState(line))
                 {
                 	break;
                 }
 		    }
+
+            mOutFile.Flush();
 	    }
 
 	    void DumpBuffer()
@@ -98,11 +96,6 @@ namespace IndesignDllRepairer
 	    bool MethodState(string input)
 	    {
 		    MatchCollection m = mReturnTypeRx.Matches(input);
-		    //if (mClass == "InDesign.MixedInk")
-		    //{
-		    //	writefln("%s: method match: %s", input, m);
-		    //}
-		
 		    if (m.Count > 0)
 		    {
 			    mReturnType = m[0].Groups[1].Value;
@@ -112,12 +105,9 @@ namespace IndesignDllRepairer
 		    m = mMethodNameRx.Matches(input);
 		    if (m.Count > 0)
 		    {
-			    if (mClass != mReturnType)
+			    if (mClass != mReturnType && mReturnType == "InDesign.PageItem")
 			    {
-				    //writeln("=".replicate(80));
-				    //writeln(mOutBuf);
                     ReplaceReturnType();
-				    //writefln("%s::Duplicate returns %s", mClass, mReturnType);
 			    }
 			    return true;
 		    }
@@ -134,8 +124,6 @@ namespace IndesignDllRepairer
 
 	    void ReplaceReturnType()
 	    {
-		    //writeln("=".replicate(80));
-		    //writeln("Replacing return type, buffer length=", mOutBuf.length);
 		    Regex rx = new Regex(@"[\w\.]+\s*$");
 
 		    while (mOutBuf.Count > 0)

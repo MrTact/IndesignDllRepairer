@@ -11,6 +11,7 @@ namespace IndesignDllRepairer
         {
             ILParser p = new ILParser();
             p.Parse("Interop.InDesign.il");
+            Console.ReadKey(true);
         }
     }
 }
